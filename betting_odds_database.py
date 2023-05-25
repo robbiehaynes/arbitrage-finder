@@ -128,7 +128,7 @@ class BettingOddsDatabase:
                             else:
                                 self.database[match['sport_key']][match['id']]['markets']['h2h'] = {'homeBest': [0, ''], 'awayBest': [0, ''], 'drawBest': [0, '']}
                         elif current_market == 'totals':
-                            self.database[match['sport_key']][match['id']]['markets']['totals'] = {'overBest': [0, 0, ''], 'underBest': [0, 0, '']}
+                            self.database[match['sport_key']][match['id']]['markets']['totals'] = {'overBest': [0,0,''], 'underBest': [0,0,'']}
                         
                     for outcomes in odds['outcomes']:
                         if current_market == 'h2h':
@@ -148,14 +148,13 @@ class BettingOddsDatabase:
                                     self.database[match['sport_key']][match['id']]['markets'][current_market]['drawBest'] = [draw_price, current_bookmaker]
 
                         elif current_market == 'totals':
+                            price = outcomes['price']
+                            point = outcomes['point']
+
                             if outcomes['name'] == 'Over':
-                                over_price = outcomes['price']
-                                over_point = outcomes['point']
-                                if over_price > self.database[match['sport_key']][match['id']]['markets'][current_market]['overBest'][0]:
-                                    self.database[match['sport_key']][match['id']]['markets'][current_market]['overBest'] = [over_price, over_point,current_bookmaker]
+                                if price > self.database[match['sport_key']][match['id']]['markets'][current_market]['overBest'][0] and point == self.database[match['sport_key']][match['id']]['markets'][current_market]['overBest'][1]:
+                                    self.database[match['sport_key']][match['id']]['markets'][current_market]['overBest'] = [price, point, current_bookmaker]
 
                             elif outcomes['name'] == 'Under':
-                                under_price = outcomes['price']
-                                under_point = outcomes['point']
-                                if under_price > self.database[match['sport_key']][match['id']]['markets'][current_market]['underBest'][0]:
-                                    self.database[match['sport_key']][match['id']]['markets'][current_market]['underBest'] = [under_price, under_point, current_bookmaker]
+                                if price > self.database[match['sport_key']][match['id']]['markets'][current_market]['underBest'][0] and point == self.database[match['sport_key']][match['id']]['markets'][current_market]['overBest'][1]:
+                                    self.database[match['sport_key']][match['id']]['markets'][current_market]['underBest'] = [price, point, current_bookmaker]
