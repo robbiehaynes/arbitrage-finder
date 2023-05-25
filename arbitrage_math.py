@@ -21,6 +21,23 @@ def run_arbitrage_math(market: dict, market_name: str) -> dict:
                 return {'home_stake': (100*home_implied)/combined_margin, 'away_stake': (100*away_implied)/combined_margin, 'roi': 100-combined_margin}
             else:
                 return None
+    
+    elif market_name == 'totals':
+        over_price = market['overBest'][0]
+        under_price = market['underBest'][0]
+
+        if over_price == 0 or under_price == 0:
+            return None
+
+        over_implied = (1/over_price) * 100
+        under_implied = (1/under_price) * 100
+
+        combined_margin = over_implied + under_implied
+        if (combined_margin) < 100:
+            return {'over_stake': (100*over_implied)/combined_margin, 'under_stake': (100*under_implied)/combined_margin, 'roi': 100-combined_margin}
+        else:
+            return None
+
 
 def find_arbitrage(database: dict) -> list :
 
@@ -57,6 +74,28 @@ def find_arbitrage(database: dict) -> list :
                                 'price': database[sport][match]['markets'][market]['drawBest'][0],
                                 'stake': calculations['draw_stake']
                             }
+
+                        results.append(result)
+
+                elif market == 'totals':
+                    calculations = run_arbitrage_math(database[sport][match]['markets'][market], market)
+                    if calculations != None:
+                        result = {
+                            'sport': sport,
+                            'home_team': home_team,
+                            'away_team': away_team,
+                            'roi': calculations['roi'],
+                            'over_stake': {
+                                'bookmaker': database[sport][match]['markets'][market]['overBest'][1],
+                                'price': database[sport][match]['markets'][market]['overBest'][0],
+                                'stake': calculations['home_stake']
+                            },
+                            'under_stake': {
+                                'bookmaker': database[sport][match]['markets'][market]['underBest'][1],
+                                'price': database[sport][match]['markets'][market]['underBest'][0],
+                                'stake': calculations['away_stake']
+                            }
+                        }
 
                         results.append(result)
 
