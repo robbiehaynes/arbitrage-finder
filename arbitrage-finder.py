@@ -1,4 +1,5 @@
 import requests
+import arbitrage_math
 import json
 import credentials
 from betting_odds_database import BettingOddsDatabase as db
@@ -69,11 +70,18 @@ if __name__ == "__main__":
     
     database = db()
 
-    database.formatJSON('football_austria_odds.json')
-    database.formatJSON('all_us_odds.json')
+    # database.formatJSON('football_austria_odds.json')
+    # database.formatJSON('all_us_odds.json')
 
-    with open('allOdds.json', 'w') as outfile:
-        json.dump(database.database, outfile, indent=4)
+    with open('allOdds.json', 'r') as outfile:
+        database.database = json.load(outfile)
+
+    # with open('allOdds.json', 'w') as outfile:
+    #     json.dump(database.database, outfile, indent=4)
+
+    print('hi')
+
+    print(arbitrage_math.find_arbitrage(database.database))
 
     # with open('all_us_odds.json', 'w') as outfile:
     #     json.dump(fetchFromAPI(), outfile)

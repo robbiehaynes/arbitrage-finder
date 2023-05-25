@@ -123,7 +123,7 @@ class BettingOddsDatabase:
                         current_market = 'h2h' if current_market == 'h2h_lay' else current_market
 
                         if current_market == 'h2h':
-                            if match['sport_key'] in no_draw_sports:
+                            if any(substring in match['sport_key'] for substring in no_draw_sports):
                                 self.database[match['sport_key']][match['id']]['markets']['h2h'] = {'homeBest': [0, ''], 'awayBest': [0, '']}
                             else:
                                 self.database[match['sport_key']][match['id']]['markets']['h2h'] = {'homeBest': [0, ''], 'awayBest': [0, ''], 'drawBest': [0, '']}
