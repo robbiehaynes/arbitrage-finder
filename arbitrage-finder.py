@@ -1,12 +1,13 @@
 import requests
 import json
 import credentials
+from betting_odds_database import BettingOddsDatabase as db
 
 # An api key is emailed to you when you sign up to a plan
 # Get a free API key at https://api.the-odds-api.com/
 API_KEY = credentials.API_KEY_SERVICE
 
-SPORT = 'soccer_austria_bundesliga' # use the sport_key from the /sports endpoint below, or use 'upcoming' to see the next 8 games across all sports
+SPORT = 'upcoming' # use the sport_key from the /sports endpoint below, or use 'upcoming' to see the next 8 games across all sports
 
 REGIONS = 'uk' # uk | us | eu | au. Multiple can be specified if comma delimited
 
@@ -64,6 +65,15 @@ def fetchFromAPI():
     
     return odds_json
 
+if __name__ == "__main__":
+    
+    database = db()
 
-with open('odds.json', 'w') as outfile:
-    json.dump(fetchFromAPI(), outfile)
+    database.formatJSON('football_austria_odds.json')
+    database.formatJSON('all_us_odds.json')
+
+    with open('allOdds.json', 'w') as outfile:
+        json.dump(database.database, outfile, indent=4)
+
+    # with open('all_us_odds.json', 'w') as outfile:
+    #     json.dump(fetchFromAPI(), outfile)
