@@ -112,15 +112,12 @@ class BettingOddsDatabase:
 
             for bookmaker in match['bookmakers']:
                 current_bookmaker = bookmaker['title']
-                if current_bookmaker == 'Betfair':
-                    continue
 
                 for odds in bookmaker['markets']:
                     current_market = odds['key']
                     if current_market == 'spreads':
                         continue
                     if current_market not in self.database[match['sport_key']][match['id']]['markets']:
-                        current_market = 'h2h' if current_market == 'h2h_lay' else current_market
 
                         if current_market == 'h2h':
                             if any(substring in match['sport_key'] for substring in no_draw_sports):
@@ -128,10 +125,17 @@ class BettingOddsDatabase:
                             else:
                                 self.database[match['sport_key']][match['id']]['markets']['h2h'] = {'homeBest': [0, ''], 'awayBest': [0, ''], 'drawBest': [0, '']}
                         elif current_market == 'totals':
-                            self.database[match['sport_key']][match['id']]['markets']['totals'] = {'overBest': [0,0,''], 'underBest': [0,0,'']}
+                            self.database[match['sport_key']][match['id']]['markets']['totals'] = {'overBest': [0,odds['outcomes'][0]['point'],''], 'underBest': [0,odds['outcomes'][0]['point'],'']}
+                        elif current_market == 'h2h_lay':
+                            if any(substring in match['sport_key'] for substring in no_draw_sports):
+                                self.database[match['sport_key']][match['id']]['markets']['h2h_lay'] = {'homeBest': [0, ''], 'awayBest': [0, '']}
+                            else:
+                                self.database[match['sport_key']][match['id']]['markets']['h2h_lay'] = {'homeBest': [0, ''], 'awayBest': [0, ''], 'drawBest': [0, '']}
                         
                     for outcomes in odds['outcomes']:
                         if current_market == 'h2h':
+                            if current_bookmaker == 'Betfair' or current_bookmaker == 'Matchbook':
+                                continue
                             if outcomes['name'] == match['home_team']:
                                 home_price = outcomes['price']
                                 if home_price > self.database[match['sport_key']][match['id']]['markets'][current_market]['homeBest'][0]:
@@ -158,3 +162,19 @@ class BettingOddsDatabase:
                             elif outcomes['name'] == 'Under':
                                 if price > self.database[match['sport_key']][match['id']]['markets'][current_market]['underBest'][0] and point == self.database[match['sport_key']][match['id']]['markets'][current_market]['overBest'][1]:
                                     self.database[match['sport_key']][match['id']]['markets'][current_market]['underBest'] = [price, point, current_bookmaker]
+
+                        if current_market == 'h2h_lay':
+                            if outcomes['name'] == match['home_team']:
+                                home_price = outcomes['price']
+                                if home_price > self.database[match['sport_key']][match['id']]['markets'][current_market]['homeBest'][0]:
+                                    self.database[match['sport_key']][match['id']]['markets'][current_market]['homeBest'] = [home_price, current_bookmaker]
+
+                            elif outcomes['name'] == match['away_team']:
+                                away_price = outcomes['price']
+                                if away_price > self.database[match['sport_key']][match['id']]['markets'][current_market]['awayBest'][0]:
+                                    self.database[match['sport_key']][match['id']]['markets'][current_market]['awayBest'] = [away_price, current_bookmaker]
+
+                            elif outcomes['name'] == 'Draw':
+                                draw_price = outcomes['price']
+                                if draw_price > self.database[match['sport_key']][match['id']]['markets'][current_market]['drawBest'][0]:
+                                    self.database[match['sport_key']][match['id']]['markets'][current_market]['drawBest'] = [draw_price, current_bookmaker]

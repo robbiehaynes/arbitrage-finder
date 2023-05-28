@@ -1,5 +1,5 @@
 import requests
-import arbitrage_math
+import arbmath
 import json
 import credentials
 from betting_odds_database import BettingOddsDatabase as db
@@ -8,7 +8,7 @@ from betting_odds_database import BettingOddsDatabase as db
 # Get a free API key at https://api.the-odds-api.com/
 API_KEY = credentials.API_KEY_SERVICE
 
-SPORT = 'upcoming' # use the sport_key from the /sports endpoint below, or use 'upcoming' to see the next 8 games across all sports
+SPORT = 'soccer_usa_mls' # use the sport_key from the /sports endpoint below, or use 'upcoming' to see the next 8 games across all sports
 
 REGIONS = 'uk' # uk | us | eu | au. Multiple can be specified if comma delimited
 
@@ -70,18 +70,18 @@ if __name__ == "__main__":
     
     database = db()
 
-    # database.formatJSON('football_austria_odds.json')
-    # database.formatJSON('all_us_odds.json')
+    database.formatJSON('football_austria_odds.json')
+    database.formatJSON('all_us_odds.json')
+    database.formatJSON('all_mls_odds.json')
 
-    with open('allOdds.json', 'r') as outfile:
-        database.database = json.load(outfile)
+    # with open('allOdds.json', 'r') as outfile:
+    #     database.database = json.load(outfile)
 
-    # with open('allOdds.json', 'w') as outfile:
-    #     json.dump(database.database, outfile, indent=4)
+    with open('allOdds.json', 'w') as outfile:
+        json.dump(database.database, outfile, indent=4)
 
-    print('hi')
+    with open('all_arbs.json', 'w') as outfile:
+        json.dump(arbmath.find_arbitrage(database.database), outfile, indent=4)
 
-    print(arbitrage_math.find_arbitrage(database.database))
-
-    # with open('all_us_odds.json', 'w') as outfile:
+    # with open('all_mls_odds.json', 'w') as outfile:
     #     json.dump(fetchFromAPI(), outfile)
