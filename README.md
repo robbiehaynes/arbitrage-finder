@@ -1,4 +1,4 @@
-# Python Arbitrage Betting Finder
+# Python Arbitrage Betting Finder :chart_with_upwards_trend:
 
 This arbitrage betting finder will search major sports events, using [The Odds API](https://the-odds-api.com) to fetch odds.
 
