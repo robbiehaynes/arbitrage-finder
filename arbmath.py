@@ -1,3 +1,5 @@
+from colorama import Fore, Style
+
 # Copyright (c) 2023, Robert Haynes
 # All rights reserved.
 
@@ -7,23 +9,36 @@
 def run_arb_math(market: dict, market_name: str) -> dict:
     
     if market_name == 'h2h':
+        # Get the odds into variables for the current match
         home_price = market['homeBest'][0]
         away_price = market['awayBest'][0]
         draw_price = market['drawBest'][0] if 'drawBest' in market else 0
 
+        # Calculate the implied probability of each outcome
         home_implied = (1/home_price) * 100
         away_implied = (1/away_price) * 100
         draw_implied = (1/draw_price) * 100 if draw_price != 0 else 0
 
+        # # # # # # # # # # # # # # # # # # # # # # # #
+        #
+        #   If the combined implied probability of the
+        #   outcomes is less than 100%, then there is
+        #   an arbitrage opportunity.
+        #   The stakes are calculated as follows:
+        #   stake = (100 * implied probability of outcome) / combined margin
+        #
+        # # # # # # # # # # # # # # # # # # # # # # # #
         if draw_implied != 0:
             combined_margin = home_implied + away_implied + draw_implied
             if (combined_margin) < 100:
+                print(Fore.GREEN + f'Opportunity found in {market_name} market' + Style.RESET_ALL)
                 return {'home_stake': (100*home_implied)/combined_margin, 'away_stake': (100*away_implied)/combined_margin, 'draw_stake': (100*draw_implied)/combined_margin, 'roi': 100-combined_margin}
             else:
                 return None
         else:
             combined_margin = home_implied + away_implied
             if (combined_margin) < 100:
+                print(Fore.GREEN + f'Opportunity found in {market_name} market' + Style.RESET_ALL)
                 return {'home_stake': (100*home_implied)/combined_margin, 'away_stake': (100*away_implied)/combined_margin, 'roi': 100-combined_margin}
             else:
                 return None
@@ -40,6 +55,7 @@ def run_arb_math(market: dict, market_name: str) -> dict:
 
         combined_margin = over_implied + under_implied
         if (combined_margin) < 100:
+            print(Fore.GREEN + f'Opportunity found in {market_name} market' + Style.RESET_ALL)
             return {'over_stake': (100*over_implied)/combined_margin, 'under_stake': (100*under_implied)/combined_margin, 'roi': 100-combined_margin}
         else:
             return None
@@ -51,6 +67,8 @@ def run_arb_math_laybet(markets: dict, market_name: str) -> list:
     results = []
 
     if market_name == 'h2h_lay':
+        # Get the best backing and lay odds for each match
+        # including the draw if it exists
         for market in markets:
             if market == 'h2h':
                 odds['back']['home'] = markets[market]['homeBest'][0]
@@ -63,11 +81,24 @@ def run_arb_math_laybet(markets: dict, market_name: str) -> list:
                 if 'drawBest' in markets[market]:
                     odds['lay']['draw'] = markets[market]['drawBest'][0]
 
+        # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+        #
+        #   If there are backing odds and the lay odds are lower, then calculate
+        #   if the implied odds are < 100
+        #   If so, the laybet stake is calculated with the following:
+        #   (back odds * back stake) / (lay odds - commission)
+        #   The profit is then calculated with the following:
+        #   (back odds - 1) * back stake - (lay odds - 1) * lay stake
+        #   If the profit is > 0, then add the result to the results list
+        #
+        # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
         if odds['back']['home'] != 0.0 and odds['lay']['home'] < odds['back']['home'] and (1/(odds['back']['home'])) * 100 + (1/(odds['lay']['home'])) * 100 < 97:
             stakes['back']['home'] = 100.0
             stakes['lay']['home'] = (odds['back']['home'] * stakes['back']['home']) / (odds['lay']['home'] - 0.05)
             profit = (odds['back']['home']-1) * stakes['back']['home'] - (odds['lay']['home']-1)*stakes['lay']['home']
             if profit > 0:
+                print(Fore.GREEN + f'Opportunity found in {market_name} market' + Style.RESET_ALL)
                 results.append({'type':'home', 'profit':profit, 'odds':[odds['back']['home'],odds['lay']['home']], 'stakes':[100.0, stakes['lay']['home']]})
 
         if odds['back']['away'] != 0.0 and odds['lay']['away'] < odds['back']['away'] and (1/(odds['back']['away'])) * 100 + (1/(odds['lay']['away'])) * 100 < 97:
@@ -75,6 +106,7 @@ def run_arb_math_laybet(markets: dict, market_name: str) -> list:
             stakes['lay']['away'] = (odds['back']['away'] * stakes['back']['away']) / (odds['lay']['away'] - 0.05)
             profit = (odds['back']['away']-1) * stakes['back']['away'] - (odds['lay']['away']-1)*stakes['lay']['away']
             if profit > 0:
+                print(Fore.GREEN + f'Opportunity found in {market_name} market' + Style.RESET_ALL)
                 results.append({'type':'away', 'profit':profit, 'odds':[odds['back']['away'],odds['lay']['away']], 'stakes':[100.0, stakes['lay']['away']]})
 
         if odds['back']['draw'] != 0.0 and odds['lay']['draw'] < odds['back']['draw'] and (1/(odds['back']['draw'])) * 100 + (1/(odds['lay']['draw'])) * 100 < 97:
@@ -82,6 +114,7 @@ def run_arb_math_laybet(markets: dict, market_name: str) -> list:
             stakes['lay']['draw'] = (odds['back']['draw'] * stakes['back']['draw']) / (odds['lay']['draw'] - 0.05)
             profit = (odds['back']['draw']-1) * stakes['back']['draw'] - (odds['lay']['draw']-1)*stakes['lay']['draw']
             if profit > 0:
+                print(Fore.GREEN + f'Opportunity found in {market_name} market' + Style.RESET_ALL)
                 results.append({'type':'draw', 'profit':profit, 'odds':[odds['back']['draw'],odds['lay']['draw']], 'stakes':[100.0, stakes['lay']['draw']]})
 
     return results if len(results) > 0 else None
@@ -96,6 +129,7 @@ def find_arbitrage(database: dict) -> list :
             away_team = database[sport][match]['away_team']
             for market in database[sport][match]['markets']:
                 if market == 'h2h':
+                    # Search for h2h arbitrage opportunities
                     calculations = run_arb_math(database[sport][match]['markets'][market], market)
                     if calculations != None:
                         result = {
@@ -126,6 +160,7 @@ def find_arbitrage(database: dict) -> list :
                         results.append(result)
 
                 elif market == 'totals':
+                    # Search for totals arbitrage opportunities
                     calculations = run_arb_math(database[sport][match]['markets'][market], market)
                     if calculations != None:
                         result = {
@@ -149,6 +184,7 @@ def find_arbitrage(database: dict) -> list :
                         results.append(result)
 
                 elif market == 'h2h_lay':
+                    # Search for laybet arbitrage opportunities
                     calculations = run_arb_math_laybet(database[sport][match]['markets'], market)
                     if calculations != None:
 
