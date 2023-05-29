@@ -1,3 +1,9 @@
+# Copyright (c) 2023, Robert Haynes
+# All rights reserved.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. 
+
 def run_arb_math(market: dict, market_name: str) -> dict:
     
     if market_name == 'h2h':
