@@ -116,7 +116,7 @@ class BettingOddsDatabase:
                 continue
             
             # Add match to database
-            self.database[match['sport_key']][match['id']] = {'home_team': match['home_team'], 'away_team': match['away_team'], 'markets': dict()}
+            self.database[match['sport_key']][match['id']] = {'home_team': match['home_team'], 'away_team': match['away_team'], 'time':match['commence_time'], 'markets': dict()}
 
             for bookmaker in match['bookmakers']:
                 current_bookmaker = bookmaker['title']

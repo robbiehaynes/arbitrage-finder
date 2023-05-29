@@ -127,16 +127,19 @@ def find_arbitrage(database: dict) -> list :
         for match in database[sport]:
             home_team = database[sport][match]['home_team']
             away_team = database[sport][match]['away_team']
+            time = database[sport][match]['time']
             for market in database[sport][match]['markets']:
                 if market == 'h2h':
                     # Search for h2h arbitrage opportunities
                     calculations = run_arb_math(database[sport][match]['markets'][market], market)
                     if calculations != None:
                         result = {
+                            'id': match,
                             'sport': sport,
                             'type': 'h2h',
                             'home_team': home_team,
                             'away_team': away_team,
+                            'time': time,
                             'roi': calculations['roi'],
                             'home_stake': {
                                 'bookmaker': database[sport][match]['markets'][market]['homeBest'][1],
@@ -164,10 +167,12 @@ def find_arbitrage(database: dict) -> list :
                     calculations = run_arb_math(database[sport][match]['markets'][market], market)
                     if calculations != None:
                         result = {
+                            'id': match,
                             'sport': sport,
                             'type': 'totals',
                             'home_team': home_team,
                             'away_team': away_team,
+                            'time': time,
                             'roi': calculations['roi'],
                             'over_stake': {
                                 'bookmaker': database[sport][match]['markets'][market]['overBest'][1],
@@ -189,10 +194,12 @@ def find_arbitrage(database: dict) -> list :
                     if calculations != None:
 
                         result = {
+                            'id': match,
                             'sport': sport,
                             'type': 'laybet',
                             'home_team': home_team,
-                            'away_team': away_team
+                            'away_team': away_team,
+                            'time': time
                         }
 
                         for calculation in calculations:

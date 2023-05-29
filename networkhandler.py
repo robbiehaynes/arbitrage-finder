@@ -1,5 +1,9 @@
 import credentials
 import requests
+import firebase_admin
+from dateutil import parser
+from firebase_admin import credentials as firebase_credentials
+from firebase_admin import firestore
 from colorama import Fore, Back, Style
 
 class OddsAPIHandler:
@@ -50,3 +54,25 @@ class OddsAPIHandler:
             # print('Used requests', odds_response.headers['x-requests-used'])
         
         return odds_json
+    
+class FirebaseHandler:
+
+    db = None
+
+    def __init__(self):
+        cred = firebase_credentials.Certificate('credentials/firebaseServiceAccountKey.json')
+        firebase_admin.initialize_app(cred)
+        self.db = firestore.client()
+
+    def addOddsToFirebase(self, bet_json):
+        bet_json['time'] = parser.parse(bet_json['time'])
+        id = bet_json['id']
+        del bet_json['id']
+
+        try:
+            self.db.collection(bet_json['type']).document(id).set(bet_json)
+        except Exception as e:
+            print(Back.RED + f'Failed to add odds to Firebase: {e}' + Style.RESET_ALL)
+
+    def fetchFromFirebase(self):
+        print(Fore.YELLOW + 'Getting the odds from Firebase...' + Style.RESET_ALL)
