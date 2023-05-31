@@ -14,6 +14,9 @@ def run_arb_math(market: dict, market_name: str) -> dict:
         away_price = market['awayBest'][0]
         draw_price = market['drawBest'][0] if 'drawBest' in market else 0
 
+        if home_price == 0 or away_price == 0:
+            return None
+
         # Calculate the implied probability of each outcome
         home_implied = (1/home_price) * 100
         away_implied = (1/away_price) * 100

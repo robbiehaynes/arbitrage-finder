@@ -15,15 +15,13 @@ class OddsAPIHandler:
 
     REGIONS = 'uk' # uk | us | eu | au. Multiple can be specified if comma delimited
 
-    MARKETS = 'h2h,spreads,totals' # h2h | spreads | totals. Multiple can be specified if comma delimited
+    MARKETS = 'h2h,totals' # h2h | spreads | totals. Multiple can be specified if comma delimited
 
     ODDS_FORMAT = 'decimal' # decimal | american
 
     DATE_FORMAT = 'iso' # iso | unix
 
-    used_requests, remaining_requests = 0, 0
-
-    def __init__(self, sport, markets = 'h2h, totals', odds_format = 'decimal', date_format = 'iso'):
+    def __init__(self, sport, markets = 'h2h,totals', odds_format = 'decimal', date_format = 'iso'):
         self.SPORT = sport
         self.MARKETS = markets
         self.ODDS_FORMAT = odds_format
@@ -45,13 +43,12 @@ class OddsAPIHandler:
 
         else:
             odds_json = odds_response.json()
-            print(Fore.GREEN + 'Number of events received:', len(odds_json) + Style.RESET_ALL)
+            print(Fore.GREEN + 'Number of events received:', len(odds_json))
+            print(Style.RESET_ALL)
 
             # Update the usage quota
-            used_requests = odds_response.headers['x-requests-used']
-            remaining_requests = odds_response.headers['x-requests-remaining']
-            # print('Remaining requests', odds_response.headers['x-requests-remaining'])
-            # print('Used requests', odds_response.headers['x-requests-used'])
+            print('Remaining requests', odds_response.headers['x-requests-remaining'])
+            print('Used requests', odds_response.headers['x-requests-used'])
         
         return odds_json
     
