@@ -52,6 +52,19 @@ class OddsAPIHandler:
         
         return odds_json
     
+    def print_quota(self):
+        response = requests.get('https://api.the-odds-api.com/v4/sports', params={
+            'api_key': self.API_KEY
+        })
+
+        if response.status_code != 200:
+            print(Back.RED + f'Failed to get quota: status_code {response.status_code}, response body {response.text}' + Style.RESET_ALL)
+
+        else:
+            # Print the usage quota
+            print('Remaining requests', response.headers['x-requests-remaining'])
+            print('Used requests', response.headers['x-requests-used'])
+    
 class FirebaseHandler:
 
     db = None
