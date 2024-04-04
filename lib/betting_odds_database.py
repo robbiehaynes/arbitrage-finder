@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree. 
 
 import json
+from datetime import datetime
 
 class BettingOddsDatabase:
     database = dict()
@@ -104,97 +105,65 @@ class BettingOddsDatabase:
             'tennis_wta_wimbledon': dict()
         }
 
+    @staticmethod
+    def initialize_market(match, current_market, odds):
+        # Define sport that don't have a draw
+        no_draw_sports = ['americanfootball','baseball','icehockey','basketball','golf','tennis','mma','cricket']
+
+        if current_market == 'h2h':
+            if any(substring in match['sport_key'] for substring in no_draw_sports):
+                return {'homeBest': [0, ''], 'awayBest': [0, '']}
+            else:
+                return {'homeBest': [0, ''], 'awayBest': [0, ''], 'drawBest': [0, '']}
+        elif current_market == 'totals':
+            return {'overBest': [0, odds['outcomes'][0]['point'], ''], 'underBest': [0, odds['outcomes'][0]['point'], '']}
+        elif current_market == 'h2h_lay':
+            if any(substring in match['sport_key'] for substring in no_draw_sports):
+                return {'homeBest': [0, ''], 'awayBest': [0, '']}
+            else:
+                return {'homeBest': [0, ''], 'awayBest': [0, ''], 'drawBest': [0, '']}
+        else:
+            return {}
+        
+    def update_best_price(self, outcomes, sport_key, match_id, metric, bookmaker, current_market):
+        price = outcomes['price']
+        if price > self.database[sport_key][match_id]['markets'][current_market][metric][0]:
+            self.database[sport_key][match_id]['markets'][current_market][metric] = [price,bookmaker]
+
     def formatJSON(self, fileName):
         with open(fileName) as json_file:
             odds_json = json.load(json_file)
-
-        # Define sport that don't have a draw
-        no_draw_sports = ['americanfootball','baseball','icehockey','basketball','golf','tennis','mma','cricket']
 
         for match in odds_json:
             if type(match) == str: # Skip empty matches
                 continue
             
             # Add match to database
-            self.database[match['sport_key']][match['id']] = {'home_team': match['home_team'], 'away_team': match['away_team'], 'time':match['commence_time'], 'markets': dict()}
-
+            self.database[match['sport_key']][match['id']] = {'home_team': match['home_team'], 'away_team': match['away_team'], 'time':datetime.strptime(match['commence_time'], "%Y-%m-%dT%H:%M:%SZ").timestamp(), 'markets': dict()}
             for bookmaker in match['bookmakers']:
                 current_bookmaker = bookmaker['title']
-
                 for odds in bookmaker['markets']:
                     current_market = odds['key']
                     if current_market == 'spreads':
                         continue
                     if current_market not in self.database[match['sport_key']][match['id']]['markets']:
-                        # Initialise blank variables in the dictionary for each market
-                        # Format head to head markets
-                        if current_market == 'h2h':
-                            if any(substring in match['sport_key'] for substring in no_draw_sports): # Check if sport has a draw
-                                self.database[match['sport_key']][match['id']]['markets']['h2h'] = {'homeBest': [0, ''], 'awayBest': [0, '']}
-                            else:
-                                self.database[match['sport_key']][match['id']]['markets']['h2h'] = {'homeBest': [0, ''], 'awayBest': [0, ''], 'drawBest': [0, '']}
-
-                        # Format totals markets
-                        elif current_market == 'totals': 
-                            self.database[match['sport_key']][match['id']]['markets']['totals'] = {'overBest': [0,odds['outcomes'][0]['point'],''], 'underBest': [0,odds['outcomes'][0]['point'],'']}
-
-                        # Format laybet markets
-                        elif current_market == 'h2h_lay':
-                            if any(substring in match['sport_key'] for substring in no_draw_sports):
-                                self.database[match['sport_key']][match['id']]['markets']['h2h_lay'] = {'homeBest': [0, ''], 'awayBest': [0, '']}
-                            else:
-                                self.database[match['sport_key']][match['id']]['markets']['h2h_lay'] = {'homeBest': [0, ''], 'awayBest': [0, ''], 'drawBest': [0, '']}
-                        
+                        self.database[match['sport_key']][match['id']]['markets'][current_market] = self.initialize_market(match, current_market, odds)
+                    
                     for outcomes in odds['outcomes']:
                         if current_market == 'h2h':
                             if current_bookmaker == 'Betfair' or current_bookmaker == 'Matchbook': # Skip Betfair and Matchbook as they are exchanges
                                 continue
                             if outcomes['name'] == match['home_team']:
-                                home_price = outcomes['price']
-                                # Check if home price is better than current best
-                                if home_price > self.database[match['sport_key']][match['id']]['markets'][current_market]['homeBest'][0]:
-                                    self.database[match['sport_key']][match['id']]['markets'][current_market]['homeBest'] = [home_price, current_bookmaker]
-
+                                self.update_best_price(outcomes, match['sport_key'], match['id'], 'homeBest', current_bookmaker, current_market)
                             elif outcomes['name'] == match['away_team']:
-                                away_price = outcomes['price']
-                                # Check if away price is better than current best
-                                if away_price > self.database[match['sport_key']][match['id']]['markets'][current_market]['awayBest'][0]:
-                                    self.database[match['sport_key']][match['id']]['markets'][current_market]['awayBest'] = [away_price, current_bookmaker]
-
+                                self.update_best_price(outcomes, match['sport_key'], match['id'], 'awayBest', current_bookmaker, current_market)
                             elif outcomes['name'] == 'Draw':
-                                draw_price = outcomes['price']
-                                # Check if draw price is better than current best
-                                if draw_price > self.database[match['sport_key']][match['id']]['markets'][current_market]['drawBest'][0]:
-                                    self.database[match['sport_key']][match['id']]['markets'][current_market]['drawBest'] = [draw_price, current_bookmaker]
-
+                                self.update_best_price(outcomes, match['sport_key'], match['id'], 'drawBest', current_bookmaker, current_market)
                         elif current_market == 'totals':
-                            price = outcomes['price']
-                            point = outcomes['point']
-
-                            # Get the best price for over and under
                             if outcomes['name'] == 'Over':
-                                if price > self.database[match['sport_key']][match['id']]['markets'][current_market]['overBest'][0] and point == self.database[match['sport_key']][match['id']]['markets'][current_market]['overBest'][1]:
-                                    self.database[match['sport_key']][match['id']]['markets'][current_market]['overBest'] = [price, point, current_bookmaker]
-
+                                self.update_best_price(outcomes, match['sport_key'], match['id'], 'overBest', current_bookmaker, current_market)
                             elif outcomes['name'] == 'Under':
-                                if price > self.database[match['sport_key']][match['id']]['markets'][current_market]['underBest'][0] and point == self.database[match['sport_key']][match['id']]['markets'][current_market]['overBest'][1]:
-                                    self.database[match['sport_key']][match['id']]['markets'][current_market]['underBest'] = [price, point, current_bookmaker]
-
-                        if current_market == 'h2h_lay':
+                                self.update_best_price(outcomes, match['sport_key'], match['id'], 'underBest', current_bookmaker, current_market)
+                        elif current_market == 'h2h_lay':
                             if outcomes['name'] == match['home_team']:
-                                home_price = outcomes['price']
-                                # Check if home price is better than current best
-                                if home_price > self.database[match['sport_key']][match['id']]['markets'][current_market]['homeBest'][0]:
-                                    self.database[match['sport_key']][match['id']]['markets'][current_market]['homeBest'] = [home_price, current_bookmaker]
-
-                            elif outcomes['name'] == match['away_team']:
-                                away_price = outcomes['price']
-                                # Check if away price is better than current best
-                                if away_price > self.database[match['sport_key']][match['id']]['markets'][current_market]['awayBest'][0]:
-                                    self.database[match['sport_key']][match['id']]['markets'][current_market]['awayBest'] = [away_price, current_bookmaker]
-
-                            elif outcomes['name'] == 'Draw':
-                                draw_price = outcomes['price']
-                                # Check if draw price is better than current best
-                                if draw_price > self.database[match['sport_key']][match['id']]['markets'][current_market]['drawBest'][0]:
-                                    self.database[match['sport_key']][match['id']]['markets'][current_market]['drawBest'] = [draw_price, current_bookmaker]
+                                self.update_best_price(outcomes, match['sport_key'], match['id'], 'homeBest', current_bookmaker, current_market)

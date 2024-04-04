@@ -8,7 +8,7 @@
 #baseball_ncaa
 #baseball_mlb_preseason
 #baseball_mlb_world_series_winner
-basketball_nba
+#basketball_nba
 #basketball_euroleague
 #basketball_nba_championship_winner
 #basketball_wnba

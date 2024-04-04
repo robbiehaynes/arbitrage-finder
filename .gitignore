@@ -1,0 +1,12 @@
+# data
+data/*
+!data/sports.txt
+
+.env.local
+
+logs
+odds/*
+
+# cache
+__pycache__
+lib/__pycache__
