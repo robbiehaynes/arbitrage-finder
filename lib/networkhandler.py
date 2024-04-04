@@ -161,8 +161,8 @@ class DiscordHandler:
         **Sport:** {sport}
         **Match:** {home_team} vs {away_team} at {time}
         **Stakes:**
-            *Over:* Stake £{stakes['over']['stake']} with {stakes['over']['bookmaker']} @ {stakes['over']['price']}
-            *Under:* Stake £{stakes['under']['stake']} with {stakes['under']['bookmaker']} @ {stakes['under']['price']}
+            *Over {stakes['over']['point']}:* Stake £{stakes['over']['stake']} with {stakes['over']['bookmaker']} @ {stakes['over']['price']}
+            *Under {stakes['under']['point']}:* Stake £{stakes['under']['stake']} with {stakes['under']['bookmaker']} @ {stakes['under']['price']}
 
         for a return of {bet['roi']}%
         """.strip()

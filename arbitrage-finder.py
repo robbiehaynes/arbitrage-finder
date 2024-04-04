@@ -32,7 +32,7 @@ if __name__ == "__main__":
     print(Fore.YELLOW + "Formatting JSON data..." + Style.RESET_ALL)
     for filename in os.listdir('odds'):
         database.formatJSON('odds/'+filename)
-    print(Back.GREEN + Fore.BLACK + "Formatting complete!\n" + Style.RESET_ALL)
+    print(Back.GREEN + Fore.BLACK + "Formatting complete!" + Style.RESET_ALL + "\n")
 
     with open('data/all_odds.json', 'w') as outfile:
         json.dump(database.database, outfile, indent=4)
@@ -57,6 +57,3 @@ if __name__ == "__main__":
         if bet_id:
             discord.send_bet_to_discord(bet, bet_id)
     print(Back.GREEN + Fore.BLACK + "Upload complete!" + Style.RESET_ALL + "\n")
-
-    # with open('all_mls_odds.json', 'w') as outfile:
-    #     json.dump(fetchFromAPI(), outfile)

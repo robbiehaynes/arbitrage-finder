@@ -116,7 +116,11 @@ class BettingOddsDatabase:
             else:
                 return {'homeBest': [0, ''], 'awayBest': [0, ''], 'drawBest': [0, '']}
         elif current_market == 'totals':
-            return {'overBest': [0, odds['outcomes'][0]['point'], ''], 'underBest': [0, odds['outcomes'][0]['point'], '']}
+            return {'overBest': {
+                2.5 : [0, ''],
+            }, 'underBest': {
+                2.5 : [0, ''],
+            }}
         elif current_market == 'h2h_lay':
             if any(substring in match['sport_key'] for substring in no_draw_sports):
                 return {'homeBest': [0, ''], 'awayBest': [0, '']}
@@ -127,8 +131,16 @@ class BettingOddsDatabase:
         
     def update_best_price(self, outcomes, sport_key, match_id, metric, bookmaker, current_market):
         price = outcomes['price']
-        if price > self.database[sport_key][match_id]['markets'][current_market][metric][0]:
-            self.database[sport_key][match_id]['markets'][current_market][metric] = [price,bookmaker]
+        if current_market == 'totals':
+            point = outcomes['point']
+            try:
+                if price > self.database[sport_key][match_id]['markets'][current_market][metric][point][0]:
+                    self.database[sport_key][match_id]['markets'][current_market][metric][point] = [price, bookmaker]
+            except KeyError:
+                self.database[sport_key][match_id]['markets'][current_market][metric][point] = [price, bookmaker]
+        else:
+            if price > self.database[sport_key][match_id]['markets'][current_market][metric][0]:
+                self.database[sport_key][match_id]['markets'][current_market][metric] = [price,bookmaker]
 
     def formatJSON(self, fileName):
         with open(fileName) as json_file:

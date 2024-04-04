@@ -52,21 +52,23 @@ class ArbitrageFinder:
                     return None
         
         elif market_name == 'totals':
-            over_price = market['overBest'][0]
-            under_price = market['underBest'][0]
+            for point in market['overBest'].keys():
+                over_price = market['overBest'][point][0]
+                under_price = market['underBest'][point][0]
 
-            if over_price == 0 or under_price == 0:
-                return None
+                if over_price == 0 or under_price == 0:
+                    continue
 
-            over_implied = (1/over_price) * 100
-            under_implied = (1/under_price) * 100
+                over_implied = (1/over_price) * 100
+                under_implied = (1/under_price) * 100
 
-            combined_margin = over_implied + under_implied
-            if (combined_margin) < 100:
-                print(Fore.GREEN + f'Opportunity found in {market_name} market' + Style.RESET_ALL)
-                return {'over_stake': (100*over_implied)/combined_margin, 'under_stake': (100*under_implied)/combined_margin, 'roi': 100-combined_margin}
-            else:
-                return None
+                combined_margin = over_implied + under_implied
+                if (combined_margin) < 100:
+                    print(Fore.GREEN + f'Opportunity found in {market_name} market' + Style.RESET_ALL)
+                    return {'over_stake': (100*over_implied)/combined_margin, 'under_stake': (100*under_implied)/combined_margin, 'roi': 100-combined_margin, 'point': point}
+                else:
+                    continue
+            return None
 
     @staticmethod 
     def run_arb_math_laybet(markets: dict, market_name: str) -> list:
@@ -184,14 +186,16 @@ class ArbitrageFinder:
                                 'time': time,
                                 'roi': calculations['roi'],
                                 'over_stake': {
-                                    'bookmaker': self.database[sport][match]['markets'][market]['overBest'][1],
-                                    'price': self.database[sport][match]['markets'][market]['overBest'][0],
+                                    'bookmaker': self.database[sport][match]['markets'][market]['overBest'][calculations['point']][1],
+                                    'point': calculations['point'],
+                                    'price': self.database[sport][match]['markets'][market]['overBest'][calculations['point']][0],
                                     'stake': calculations['over_stake']
                                 },
                                 'under_stake': {
-                                    'bookmaker': self.database[sport][match]['markets'][market]['underBest'][1],
-                                    'price': self.database[sport][match]['markets'][market]['underBest'][0],
-                                    'stake': calculations['under_stake']
+                                    'bookmaker': self.database[sport][match]['markets'][market]['underBest'][calculations['point']][1],
+                                    'point': calculations['point'],
+                                    'price': self.database[sport][match]['markets'][market]['underBest'][calculations['point']][0],
+                                    'stake': calculations['over_stake']
                                 }
                             }
 
