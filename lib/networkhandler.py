@@ -1,7 +1,6 @@
 import requests
 import os
 from dotenv import load_dotenv, find_dotenv
-from dateutil import parser
 from colorama import Fore, Back, Style
 
 load_dotenv(find_dotenv('.env.local'))

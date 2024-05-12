@@ -5,7 +5,7 @@ data/*
 .env.local
 
 logs
-odds/*
+odds/*.json
 
 # cache
 __pycache__

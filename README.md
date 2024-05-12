@@ -16,4 +16,7 @@ This will return:
 - Amount to wager on each result
 - Bookmaker to use
 
+_To save the arbitrage opportunities to a custom datastore, update the APIHandler in the networkhandler.py to use your storage solution. Also please add a DISCORD_WEBHOOK_URL in your env variables if you wish to use this feature_
+
+
 **Disclaimer: Arbitrage betting discussed herein is purely for educational purposes and should not be construed as financial advice.**
